@@ -1,0 +1,29 @@
+import torch
+
+
+def mmd(x, y, width=1):
+    x_n = x.shape[0]
+    y_n = y.shape[0]
+
+    x_square = torch.sum(x * x, 1)
+    y_square = torch.sum(y * y, 1)
+
+    kxy = torch.matmul(x, y.t())
+    kxy = kxy - 0.5 * x_square.unsqueeze(1).expand(x_n, y_n)
+    kxy = kxy - 0.5 * y_square.expand(x_n, y_n)
+    kxy_width = torch.median(kxy)
+    kxy = torch.exp(kxy_width * kxy).sum() / x_n / y_n
+
+    kxx = torch.matmul(x, x.t())
+    kxx = kxx - 0.5 * x_square.expand(x_n, x_n)
+    kxx = kxx - 0.5 * x_square.expand(x_n, x_n)
+    kxx_width = torch.median(kxx)
+    kxx = torch.exp(kxx_width * kxx).sum() / x_n / x_n
+
+    kyy = torch.matmul(y, y.t())
+    kyy = kyy - 0.5 * y_square.expand(y_n, y_n)
+    kyy = kyy - 0.5 * y_square.expand(y_n, y_n)
+    kyy_width = torch.median(kyy)
+    kyy = torch.exp(kyy_width * kyy).sum() / y_n / y_n
+
+    return kxx + kyy - 2 * kxy
